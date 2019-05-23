@@ -328,6 +328,153 @@ class CircleMarker(Marker):
         self._name = 'CircleMarker'
         self.options = _parse_options(line=False, radius=radius, **kwargs)
 
+class VectorGridNaverMap(Layer):
+    """
+    An implementation of VectorGrid.protobuf plugin to display gridded vector data as a layer
+    src:    https://github.com/Leaflet/Leaflet.VectorGrid
+    docs:   http://leaflet.github.io/Leaflet.VectorGrid/vectorgrid-api-docs.html
+
+    Parameters
+    ----------
+    tiles: location of the tiles (i.e. url)
+    name: name of the layer
+    options: options to pass to VectorGrid protobuf (i.e. styles)
+
+    Usage
+    -----
+    See examples/VectorGrid.ipynb
+
+    """
+    _template = Template(u"""
+            {% macro script(this, kwargs) -%}
+            L.Icon.Default.mergeOptions({
+              shadowUrl: "",
+              iconRetinaUrl: "",
+              iconSize:     [41, 41], // size of the icon
+              shadowSize:   [41, 41], // size of the shadow
+              iconAnchor:   [20, 37], // point of the icon which will correspond to marker's location
+              shadowAnchor: [20, 37],  // the same for the shadow
+              popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+            });
+            var vectorTileStyling = {
+                    water: {
+                            fill: true,
+                            weight: 1,
+                            fillColor: '#9db6ff',
+                            color: '#9db6cc',
+                            fillOpacity: 1.0,
+                            opacity: 1.0,
+                    },
+
+                    park: {
+                            fill: true,
+                            weight: 0.9,
+                            fillColor: '#9fca97',
+                            color: '#00ff00',
+                            fillOpacity: 0.4,
+                            opacity: 0.0
+                    },
+
+                    road: {	// mapbox & nextzen only
+                            fill: true,
+                            weight: 1,
+                            // fillColor: '#fcfabf',
+                            fillColor: '#fcfcfc',
+                            color: '#a0a0a0',
+                            fillOpacity: 1.0,
+                            opacity: 0.0
+                    },
+                    road2: {	// mapbox & nextzen only
+                            fill: true,
+                            weight: 1,
+                            // fillColor: '#fcfabf',
+                            fillColor: '#fcfcfc',
+                            color: '#fcfcfc',
+                            fillOpacity: 1.0,
+                            opacity: 1.0
+                    },
+                    building: {
+                            fill: true,
+                            weight: 0.1,
+                            fillColor: '#f8f6f1',
+                            color: '#000000',
+                            fillOpacity: 0.3,
+                            opacity: 1.0
+                    },
+                    sisul: {
+                            fill: true,
+                            weight: 0.2,
+                            fillColor: '#f8f6f1',
+                            color: '#a0a0a0',
+                            fillOpacity: 0.3,
+                            opacity: 1.0
+                    },
+                    test: {
+                            fill: true,
+                            weight: 0.2,
+                            fillColor: '#000000',
+                            color: '#000000',
+                            fillOpacity: 1.0,
+                            opacity: 1.0
+                    },
+                    empty: [ ],
+
+            };
+            vectorTileStyling.bg_building_a  = vectorTileStyling.building;  // building
+            vectorTileStyling.bg_danji_a  = vectorTileStyling.building;             // 단지 묶음
+            vectorTileStyling.bg_rd_sisul_a  = vectorTileStyling.sisul;     // 지하철, 지상으로통하는 통로들
+            vectorTileStyling.bg_park_a  = vectorTileStyling.park;
+            vectorTileStyling.bg_rd_width_a  = vectorTileStyling.road;      // 도로폭
+            vectorTileStyling.bg_aptpy_a  = vectorTileStyling.building;     // 아파트단지
+
+            vectorTileStyling.bg_rd_sisul_l  = vectorTileStyling.sisul;
+            vectorTileStyling.bg_water_a  = vectorTileStyling.water;
+            vectorTileStyling.bg_water_l  = vectorTileStyling.water;
+            vectorTileStyling.bg_rd_link_l  = vectorTileStyling.road2;
+
+
+            // Unused terms
+            vectorTileStyling.bg_ferry_l  = vectorTileStyling.empty;
+            vectorTileStyling.bg_contour_a  = vectorTileStyling.empty;
+            vectorTileStyling.bg_oneway_l  = vectorTileStyling.empty;
+            vectorTileStyling.bg_thm_ydo_a  = vectorTileStyling.empty;
+            vectorTileStyling.bg_adm_l  = vectorTileStyling.empty;
+            vectorTileStyling.bg_thm_jigu_a  = vectorTileStyling.empty;
+            vectorTileStyling.bg_rail_l  = vectorTileStyling.empty;
+            vectorTileStyling.bg_rd_label_highway_l  = vectorTileStyling.road;
+            vectorTileStyling.bg_thm_width_a  = vectorTileStyling.empty;
+            vectorTileStyling.bg_subwayrail_label_l  = vectorTileStyling.empty;     // 지하철
+            vectorTileStyling.bg_rd_label_general_l  = vectorTileStyling.empty;     // 도로 라벨
+
+
+            // Unused marks
+            vectorTileStyling.nk_bg_adm_l  = vectorTileStyling.empty;
+            vectorTileStyling.nk_bg_rail_l  = vectorTileStyling.empty;
+            vectorTileStyling.nk_bg_park_a  = vectorTileStyling.empty;
+            vectorTileStyling.nk_bg_rd_link_l  = vectorTileStyling.empty;
+            vectorTileStyling.nk_bg_danji_a  = vectorTileStyling.empty;
+            vectorTileStyling.nk_bg_water_l  = vectorTileStyling.empty;
+            vectorTileStyling.nk_bg_water_a  = vectorTileStyling.empty;
+            vectorTileStyling.nk_bg_building_a  = vectorTileStyling.empty;
+            vectorTileStyling.uturn_p  = vectorTileStyling.empty;
+            vectorTileStyling.na_poi_db_p  = vectorTileStyling.empty;
+            var vectorTileOptions = {
+                vectorTileLayerStyles: vectorTileStyling,
+            };
+
+            var {{this.get_name()}} = L.vectorGrid.protobuf(
+                '{{this.tiles}}', vectorTileOptions).addTo({{this._parent.get_name()}});
+            {%- endmacro %}
+            """)  # noqa
+
+    def __init__(self, tiles, name, options):
+        self.tile_name = (name if name is not None else
+                          ''.join(tiles.lower().strip().split()))
+        super(VectorGridNaverMap, self).__init__(name=self.tile_name)
+        self.tiles = tiles
+        self._name = 'VectorGrid'
+        if(options):
+            self.options = options
 
 class VectorGrid(Layer):
     """
