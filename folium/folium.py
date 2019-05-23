@@ -19,7 +19,7 @@ from folium.features import GeoJson, TopoJson
 from folium.map import FitBounds
 from folium.raster_layers import TileLayer
 from folium.utilities import _validate_location
-from folium.vector_layers import VectorGrid, VectorGridChoropleth
+from folium.vector_layers import VectorGrid, VectorGridChoropleth, VectorGridNaverMap
 
 from jinja2 import Environment, PackageLoader, Template
 
@@ -639,6 +639,28 @@ $(document).ready(objects_in_front);
         """
         for obj in args:
             self.objects_to_stay_in_front.append(obj)
+
+    def add_vector_grid_navermap_protobuf(self, tiles, name=None, options=None):
+        """
+        An implementation of VectorGridNaverMap.protobuf plugin to display gridded vector data as a tile-layer
+        src:    https://github.com/Leaflet/Leaflet.VectorGrid
+        docs:   http://leaflet.github.io/Leaflet.VectorGrid/vectorgrid-api-docs.html
+
+        Parameters
+        ----------
+        tiles: location of the tiles (i.e. url)
+        name: name of the layer
+        options: options to pass to VectorGrid protobuf (i.e. styles)
+
+        Usage
+        -----
+        See examples/VectorGrid.ipynb
+
+        """
+        _default_js.append(
+            ('vectorGrid', 'https://unpkg.com/leaflet.vectorgrid@1.3.0/dist/Leaflet.VectorGrid.bundled.js'))
+        vectorGrid = VectorGridNaverMap(tiles=tiles, name=name, options=options)
+        self.add_child(vectorGrid, name=name)
 
     def add_vector_grid_protobuf(self, tiles, name=None, options=None):
         """
