@@ -207,6 +207,7 @@ class Marker(MacroElement):
     """
     Create a simple stock Leaflet marker on the map, with optional
     popup text or Vincent visualization.
+    using Leaflet.rotate-markers.
 
     Parameters
     ----------
@@ -237,17 +238,19 @@ class Marker(MacroElement):
         var {{this.get_name()}} = L.marker(
             [{{this.location[0]}}, {{this.location[1]}}],
             {
-                icon: new L.Icon.Default()
+                icon: new L.Icon.Default(),
+                rotationAngle: {{this.rotation_angle}}
                 }
             ).addTo({{this._parent.get_name()}});
         {% endmacro %}
         """)
 
-    def __init__(self, location, popup=None, tooltip=None, icon=None):
+    def __init__(self, location, popup=None, tooltip=None, icon=None, rotation_angle=0.0):
         super(Marker, self).__init__()
         self._name = 'Marker'
         self.tooltip = tooltip
         self.location = _validate_coordinates(location)
+        self.rotation_angle = rotation_angle
         if icon is not None:
             self.add_child(icon)
         if isinstance(popup, text_type) or isinstance(popup, binary_type):
